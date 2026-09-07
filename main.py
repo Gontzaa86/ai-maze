@@ -2,6 +2,7 @@ from maze.generator import RecursiveBacktrackingGenerator
 from maze.maze import Maze
 from solvers.tremaux import TremauxSolver
 from solvers.events import EventType, SolveResult
+from visualization.pygame_view import PygameMazeView
 
 
 def create_maze(rows: int, cols: int) -> Maze:
@@ -70,6 +71,12 @@ def main():
     print("Laberinto resuelto.")
 
     print_result(result)
+
+    print()
+    print("Abriendo visualización...")
+
+    view = PygameMazeView(maze)
+    view.run()
 
 if __name__ == "__main__":
     main()
