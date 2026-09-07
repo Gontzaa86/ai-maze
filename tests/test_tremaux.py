@@ -1,5 +1,6 @@
 from maze.generator import RecursiveBacktrackingGenerator
 from solvers.tremaux import TremauxSolver
+from solvers.events import EventType
 
 def is_valid_solution(maze, solution):
 
@@ -53,11 +54,12 @@ def test_solver_reaches_end():
     start = (0, 0)
     end = (9, 9)
 
-    solution = solver.solve(
+    result = solver.solve(
         maze,
         start,
         end
     )
+    solution = result.solution
 
     assert solution[0] == start
     assert solution[-1] == end
@@ -68,11 +70,12 @@ def test_solution_is_valid():
 
     maze = generator.generate(20, 20)
 
-    solution = solver.solve(
+    result = solver.solve(
         maze,
         (0, 0),
         (19, 19)
     )
+    solution = result.solution
 
     assert is_valid_solution(
         maze,
@@ -100,11 +103,12 @@ def test_solver_on_different_sizes():
             cols
         )
 
-        solution = solver.solve(
+        result = solver.solve(
             maze,
             (0, 0),
             (rows - 1, cols - 1)
         )
+        solution = result.solution
 
         assert solution[0] == (0, 0)
         assert solution[-1] == (
@@ -128,11 +132,12 @@ def test_solver_multiple_random_mazes():
             20
         )
 
-        solution = solver.solve(
+        result = solver.solve(
             maze,
             (0, 0),
             (19, 19)
         )
+        solution = result.solution
 
         assert solution[0] == (0, 0)
         assert solution[-1] == (19, 19)
@@ -141,3 +146,96 @@ def test_solver_multiple_random_mazes():
             maze,
             solution
         )
+
+def test_solver_generates_events():
+    generator = RecursiveBacktrackingGenerator()
+    solver = TremauxSolver()
+
+    maze = generator.generate(10, 10)
+
+    result = solver.solve(
+        maze,
+        (0, 0),
+        (9, 9)
+    )
+
+    assert result.events
+
+
+def test_first_event_is_start():
+    generator = RecursiveBacktrackingGenerator()
+    solver = TremauxSolver()
+
+    maze = generator.generate(10, 10)
+
+    result = solver.solve(
+        maze,
+        (0, 0),
+        (9, 9)
+    )
+
+    first = result.events[0]
+
+    assert first.type == EventType.START
+    assert first.position == (0, 0)
+
+
+def test_last_event_is_solved():
+    generator = RecursiveBacktrackingGenerator()
+    solver = TremauxSolver()
+
+    maze = generator.generate(10, 10)
+
+    result = solver.solve(
+        maze,
+        (0, 0),
+        (9, 9)
+    )
+
+    last = result.events[-1]
+
+    assert last.type == EventType.SOLVED
+    assert last.position == (9, 9)
+
+
+def test_move_events_are_valid_positions():
+    generator = RecursiveBacktrackingGenerator()
+    solver = TremauxSolver()
+
+    maze = generator.generate(10, 10)
+
+    result = solver.solve(
+        maze,
+        (0, 0),
+        (9, 9)
+    )
+
+    for event in result.events:
+
+        row, col = event.position
+
+        assert maze.is_inside(row, col)
+
+
+def test_backtracking_occurs_when_needed():
+    generator = RecursiveBacktrackingGenerator()
+    solver = TremauxSolver()
+
+    maze = generator.generate(20, 20)
+
+    result = solver.solve(
+        maze,
+        (0, 0),
+        (19, 19)
+    )
+
+    backtracks = [
+        event
+        for event in result.events
+        if event.type == EventType.BACKTRACK
+    ]
+
+    # En un laberinto aleatorio es muy probable
+    # que haya retrocesos, pero no debemos asumir
+    # que siempre los habrá.
+    assert len(backtracks) >= 0

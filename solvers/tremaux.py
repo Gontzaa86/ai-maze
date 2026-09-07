@@ -1,11 +1,33 @@
 from maze.maze import Maze
 from maze.cell import Cell
 
+from .events import EventType, SolverEvent, SolveResult
+
+"""
+Regla 1
+- Si estamos en una intersección y existe un camino con 0 marcas, preferimos ese camino.
+
+Regla 2
+- Si no existe ninguno, podemos utilizar un camino con 1 marca para retroceder.
+
+Regla 3
+- Nunca queremos elegir un camino con 2 marcas salvo que sea necesario para salir del laberinto.
+"""
+
 class TremauxSolver:
-    def solve(self, maze: Maze, start: tuple[int, int], end: tuple[int, int]) -> list[tuple[int, int]]:
+    def solve(self, maze: Maze, start: tuple[int, int], end: tuple[int, int]) -> SolveResult:
+        events = []
+
         current = start
         path = [current] # Inicio del camino recorrido, posición inicial
         visited_edges = set()
+
+        events.append(
+            SolverEvent(
+                EventType.START,
+                current
+            )
+        )
 
         while current != end:
             cell = maze.get_cell(*current)
@@ -28,6 +50,13 @@ class TremauxSolver:
                 current = neighbor
                 path.append(current)
 
+                events.append(
+                    SolverEvent(
+                        EventType.MOVE,
+                        current
+                    )
+                )
+
             else:
                 if len(path) == 1:
                     raise RuntimeError("No existe una solución.")
@@ -35,7 +64,24 @@ class TremauxSolver:
                 path.pop()
                 current = path[-1]
 
-        return path
+                events.append(
+                    SolverEvent(
+                        EventType.BACKTRACK,
+                        current
+                    )
+                )
+
+        events.append(
+            SolverEvent(
+                EventType.SOLVED,
+                current
+            )
+        )
+
+        return SolveResult(
+            solution = path,
+            events = events
+        )
 
     def _get_open_neighbors(self, maze: Maze, cell: Cell) -> list[tuple[int, int]]:
         neighbors = []
