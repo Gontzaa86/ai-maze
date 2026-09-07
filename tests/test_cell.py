@@ -5,7 +5,6 @@ def test_cell_initialization():
 
     assert cell.row == 2
     assert cell.col == 3
-    assert cell.visited is False
 
 def test_cell_has_all_walls():
     cell = Cell(0, 0)

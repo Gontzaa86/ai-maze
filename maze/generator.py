@@ -7,15 +7,17 @@ class RecursiveBacktrackingGenerator:
     def generate(self, rows: int, cols: int) -> Maze:
         maze = Maze(rows, cols)
 
+        visited = set()
+
         start = maze.get_cell(0, 0)
 
         stack = [start]
-        start.visited = True
+        visited.add((start.row, start.col))
 
         while stack:
             current = stack[-1]
 
-            neighbors = self._get_unvisited_neighbors(maze, current)
+            neighbors = self._get_unvisited_neighbors(maze, current, visited)
 
             if not neighbors:
                 stack.pop()
@@ -25,12 +27,12 @@ class RecursiveBacktrackingGenerator:
 
             maze.remove_wall(current, neighbor)
 
-            neighbor.visited = True
+            visited.add((neighbor.row, neighbor.col))
             stack.append(neighbor)
 
         return maze
 
-    def _get_unvisited_neighbors(self, maze: Maze, cell: Cell) -> list[Cell]:
+    def _get_unvisited_neighbors(self, maze: Maze, cell: Cell, visited: set[tuple[int, int]]) -> list[Cell]:
         neighbors = []
 
         directions = [
@@ -47,9 +49,9 @@ class RecursiveBacktrackingGenerator:
             if not maze.is_inside(row, col):
                 continue
 
-            neighbor = maze.get_cell(row, col)
+            if (row, col) in visited:
+                continue
 
-            if not neighbor.visited:
-                neighbors.append(neighbor)
+            neighbors.append(maze.get_cell(row, col))
 
         return neighbors

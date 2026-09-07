@@ -15,5 +15,3 @@ class Cell:
             "left": True
         }
     )
-
-    visited: bool = False

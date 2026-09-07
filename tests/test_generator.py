@@ -8,14 +8,42 @@ def test_generator_creates_correct_dimensions():
     assert maze.rows == 10
     assert maze.cols == 15
 
-def test_all_cells_are_visited():
+def test_generator_connects_all_cells():
     generator = RecursiveBacktrackingGenerator()
 
     maze = generator.generate(10, 10)
 
-    for row in maze.grid:
-        for cell in row:
-            assert cell.visited is True
+    visited = set()
+    stack = [(0, 0)]
+
+    while stack:
+
+        position = stack.pop()
+
+        if position in visited:
+            continue
+
+        if not maze.is_inside(*position):
+            continue
+
+        visited.add(position)
+
+        row, col = position
+        cell = maze.get_cell(row, col)
+
+        if not cell.walls["up"]:
+            stack.append((row - 1, col))
+
+        if not cell.walls["right"]:
+            stack.append((row, col + 1))
+
+        if not cell.walls["down"]:
+            stack.append((row + 1, col))
+
+        if not cell.walls["left"]:
+            stack.append((row, col - 1))
+
+    assert len(visited) == maze.rows * maze.cols
 
 def test_every_cell_is_reachable():
     generator = RecursiveBacktrackingGenerator()
@@ -96,7 +124,3 @@ def test_small_mazes():
 
         assert maze.rows == rows
         assert maze.cols == cols
-
-        for row in maze.grid:
-            for cell in row:
-                assert cell.visited is True
