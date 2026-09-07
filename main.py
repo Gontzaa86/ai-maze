@@ -75,7 +75,7 @@ def main():
     print()
     print("Abriendo visualización...")
 
-    view = PygameMazeView(maze)
+    view = PygameMazeView(maze, result)
     view.run()
 
 if __name__ == "__main__":
