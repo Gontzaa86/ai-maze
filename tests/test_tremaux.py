@@ -1,0 +1,143 @@
+from maze.generator import RecursiveBacktrackingGenerator
+from solvers.tremaux import TremauxSolver
+
+def is_valid_solution(maze, solution):
+
+    if not solution:
+        return False
+
+    for position in solution:
+
+        row, col = position
+
+        if not maze.is_inside(row, col):
+            return False
+
+    for current, next_position in zip(
+        solution,
+        solution[1:]
+    ):
+
+        current_cell = maze.get_cell(*current)
+
+        row_diff = next_position[0] - current[0]
+        col_diff = next_position[1] - current[1]
+
+        if row_diff == -1:
+            if current_cell.walls["up"]:
+                return False
+
+        elif row_diff == 1:
+            if current_cell.walls["down"]:
+                return False
+
+        elif col_diff == -1:
+            if current_cell.walls["left"]:
+                return False
+
+        elif col_diff == 1:
+            if current_cell.walls["right"]:
+                return False
+
+        else:
+            return False
+
+    return True
+
+def test_solver_reaches_end():
+    generator = RecursiveBacktrackingGenerator()
+    solver = TremauxSolver()
+
+    maze = generator.generate(10, 10)
+
+    start = (0, 0)
+    end = (9, 9)
+
+    solution = solver.solve(
+        maze,
+        start,
+        end
+    )
+
+    assert solution[0] == start
+    assert solution[-1] == end
+
+def test_solution_is_valid():
+    generator = RecursiveBacktrackingGenerator()
+    solver = TremauxSolver()
+
+    maze = generator.generate(20, 20)
+
+    solution = solver.solve(
+        maze,
+        (0, 0),
+        (19, 19)
+    )
+
+    assert is_valid_solution(
+        maze,
+        solution
+    )
+
+def test_solver_on_different_sizes():
+    generator = RecursiveBacktrackingGenerator()
+    solver = TremauxSolver()
+
+    sizes = [
+        (1, 1),
+        (1, 5),
+        (5, 1),
+        (2, 2),
+        (5, 5),
+        (10, 20),
+        (20, 10),
+    ]
+
+    for rows, cols in sizes:
+
+        maze = generator.generate(
+            rows,
+            cols
+        )
+
+        solution = solver.solve(
+            maze,
+            (0, 0),
+            (rows - 1, cols - 1)
+        )
+
+        assert solution[0] == (0, 0)
+        assert solution[-1] == (
+            rows - 1,
+            cols - 1
+        )
+
+        assert is_valid_solution(
+            maze,
+            solution
+        )
+
+def test_solver_multiple_random_mazes():
+    generator = RecursiveBacktrackingGenerator()
+    solver = TremauxSolver()
+
+    for _ in range(100):
+
+        maze = generator.generate(
+            20,
+            20
+        )
+
+        solution = solver.solve(
+            maze,
+            (0, 0),
+            (19, 19)
+        )
+
+        assert solution[0] == (0, 0)
+        assert solution[-1] == (19, 19)
+
+        assert is_valid_solution(
+            maze,
+            solution
+        )
