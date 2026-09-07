@@ -239,3 +239,61 @@ def test_backtracking_occurs_when_needed():
     # que haya retrocesos, pero no debemos asumir
     # que siempre los habrá.
     assert len(backtracks) >= 0
+
+def test_edges_are_marked_between_zero_and_two():
+    generator = RecursiveBacktrackingGenerator()
+    maze = generator.generate(10, 10)
+
+    solver = TremauxSolver()
+
+    result = solver.solve(
+        maze,
+        (0, 0),
+        (9, 9)
+    )
+
+    for mark in result.edge_marks.values():
+        assert mark in (1, 2)
+
+def test_no_edge_is_marked_more_than_twice():
+    generator = RecursiveBacktrackingGenerator()
+    maze = generator.generate(10, 10)
+
+    solver = TremauxSolver()
+
+    result = solver.solve(
+        maze,
+        (0, 0),
+        (9, 9)
+    )
+
+    for mark in result.edge_marks.values():
+        assert mark <= 2
+
+def test_movement_events_contain_edge_marks():
+    generator = RecursiveBacktrackingGenerator()
+    maze = generator.generate(10, 10)
+
+    solver = TremauxSolver()
+
+    result = solver.solve(
+        maze,
+        (0, 0),
+        (9, 9)
+    )
+
+    movement_events = [
+        event
+        for event in result.events
+        if event.type in (
+            EventType.MOVE,
+            EventType.BACKTRACK,
+        )
+    ]
+
+    assert movement_events
+
+    for event in movement_events:
+        assert event.from_position is not None
+        assert event.to_position is not None
+        assert event.mark in (1, 2)
