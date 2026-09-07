@@ -1,5 +1,47 @@
 from maze.generator import RecursiveBacktrackingGenerator
+from maze.maze import Maze
 from solvers.tremaux import TremauxSolver
+from solvers.events import EventType, SolveResult
+
+
+def create_maze(rows: int, cols: int) -> Maze:
+    generator = RecursiveBacktrackingGenerator()
+
+    return generator.generate(rows, cols)
+
+def solve_maze(maze: Maze, start: tuple[int, int], end: tuple[int, int]) -> SolveResult:
+
+    solver = TremauxSolver()
+
+    return solver.solve(maze, start, end)
+
+def print_result(result: SolveResult):
+    moves = sum(
+        1
+        for event in result.events
+        if event.type == EventType.MOVE
+    )
+
+    backtracks = sum(
+        1
+        for event in result.events
+        if event.type == EventType.BACKTRACK
+    )
+
+    print()
+    print("=== Resultado ===")
+    print()
+
+    print(f"Longitud solución:  {len(result.solution)}")
+    print(f"Movimientos:        {moves}")
+    print(f"Retrocesos:         {backtracks}")
+    print(f"Eventos:            {len(result.events)}")
+    print(f"Aristas marcadas:   {len(result.edge_marks)}")
+
+    print()
+
+    print("Solución:")
+    print(result.solution)
 
 
 def main():
@@ -7,41 +49,27 @@ def main():
     print()
 
     rows = int(input("Número de filas: "))
+
     cols = int(input("Número de columnas: "))
 
-    maze = RecursiveBacktrackingGenerator().generate(
-        rows,
-        cols
-    )
+    print()
+    print("Generando laberinto...")
 
-    solver = TremauxSolver()
+    maze = create_maze(rows, cols)
 
-    result = solver.solve(
-        maze,
-        (0, 0),
-        (rows - 1, cols - 1)
-    )
+    print("Laberinto generado.")
+
+    start = (0, 0)
+    end = (rows - 1, cols - 1)
 
     print()
-    print("=== Resultado ===")
-    print()
+    print("Resolviendo con Trémaux...")
 
-    print(f"Laberinto: {rows} x {cols}")
-    print(f"Inicio:     (0, 0)")
-    print(f"Final:      ({rows - 1}, {cols - 1})")
-    print(f"Longitud:   {len(result.solution)} posiciones")
-    print(f"Eventos:    {len(result.events)}")
-    print()
+    result = solve_maze(maze, start, end)
 
-    print("Solución:")
-    print(result.solution)
-    print()
+    print("Laberinto resuelto.")
 
-    print("Marcas de aristas:")
-
-    for edge, mark in result.edge_marks.items():
-        print(f"{set(edge)} -> {mark}")
-
+    print_result(result)
 
 if __name__ == "__main__":
     main()
