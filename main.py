@@ -1,8 +1,13 @@
+import pygame # type: ignore
+
 from maze.generator import RecursiveBacktrackingGenerator
 from maze.maze import Maze
+
 from solvers.tremaux import TremauxSolver
 from solvers.events import EventType, SolveResult
+
 from visualization.pygame_view import PygameMazeView
+from visualization.menu import MazeMenu
 
 
 def create_maze(rows: int, cols: int) -> Maze:
@@ -46,14 +51,18 @@ def print_result(result: SolveResult):
 
 
 def main():
-    print("=== AI-Maze ===")
-    print()
+    pygame.init()
 
-    rows = int(input("Número de filas: "))
+    menu = MazeMenu()
 
-    cols = int(input("Número de columnas: "))
+    dimensions = menu.run()
 
-    print()
+    if dimensions is None:
+        pygame.quit()
+        return
+
+    rows, cols = dimensions
+
     print("Generando laberinto...")
 
     maze = create_maze(rows, cols)
@@ -63,7 +72,6 @@ def main():
     start = (0, 0)
     end = (rows - 1, cols - 1)
 
-    print()
     print("Resolviendo con Trémaux...")
 
     result = solve_maze(maze, start, end)
@@ -72,8 +80,9 @@ def main():
 
     print_result(result)
 
-    print()
     print("Abriendo visualización...")
+
+    pygame.display.quit()
 
     view = PygameMazeView(maze, result)
     view.run()

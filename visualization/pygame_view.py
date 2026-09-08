@@ -1,4 +1,4 @@
-import pygame
+import pygame # type: ignore
 
 from maze.maze import Maze
 from solvers.events import EventType, SolveResult

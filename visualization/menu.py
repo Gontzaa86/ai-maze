@@ -1,0 +1,184 @@
+import pygame # type: ignore
+
+class MazeMenu:
+    MIN_SIZE = 2
+    MAX_SIZE = 50
+
+    def __init__(self):
+        self.width = 600
+        self.height = 450
+
+        self.screen = pygame.display.set_mode(
+            (self.width, self.height)
+        )
+
+        pygame.display.set_caption("AI-Maze")
+
+        self.clock = pygame.time.Clock()
+
+        self.title_font = pygame.font.Font(None, 52)
+        self.label_font = pygame.font.Font(None, 32)
+        self.input_font = pygame.font.Font(None, 30)
+        self.button_font = pygame.font.Font(None, 32)
+        self.info_font = pygame.font.Font(None, 24)
+
+        self.rows = "10"
+        self.cols = "10"
+
+        self.active_field = "rows"
+
+        # .Rect --> pygame object for storing rectangular coordinates (left, top, width, height)
+        self.rows_rect = pygame.Rect(280, 150, 180, 45)
+        self.cols_rect = pygame.Rect(280, 220, 180, 45)
+        self.button_rect = pygame.Rect(190, 300, 220, 60)
+
+        self.error_message = ""
+
+    def run(self):
+        running = True
+
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return None
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        return None
+                    if event.key == pygame.K_RETURN:
+                        return self._create_dimensions()
+                    if event.key == pygame.K_BACKSPACE:
+                        self._handle_backspace()
+                    elif event.unicode.isdigit():
+                        self._handle_digit(event.unicode)
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if self.rows_rect.collidepoint(event.pos):
+                        self.active_field = "rows"
+                        self.error_message = ""
+                    elif self.cols_rect.collidepoint(event.pos):
+                        self.active_field = "cols"
+                        self.error_message = ""
+                    elif self.button_rect.collidepoint(event.pos):
+                        dimensions = self._create_dimensions()
+
+                        if dimensions is not None:
+                            return dimensions
+
+            self._draw()
+
+            pygame.display.flip()
+
+            self.clock.tick(60)
+
+        return None
+
+    def _handle_digit(self, digit: str):
+        if self.active_field == "rows":
+            if len(self.rows) < 2:
+                self.rows += digit
+
+        else:
+            if len(self.cols) < 2:
+                self.cols += digit
+
+        self.error_message = ""
+
+    def _handle_backspace(self):
+        if self.active_field == "rows":
+            self.rows = self.rows[:-1]
+
+        else:
+            self.cols = self.cols[:-1]
+
+        self.error_message = ""
+
+    def _create_dimensions(self):
+        if not self.rows or not self.cols:
+            self.error_message = ("Introduce filas y columnas.")
+            return None
+
+        rows = int(self.rows)
+        cols = int(self.cols)
+
+        if not (self.MIN_SIZE <= rows <= self.MAX_SIZE):
+            self.error_message = (
+                f"Las filas deben estar entre "
+                f"{self.MIN_SIZE} y {self.MAX_SIZE}"
+            )
+            return None
+
+        if not (self.MIN_SIZE <= cols <= self.MAX_SIZE):
+            self.error_message = (
+                f"Las columnas deben estar entre "
+                f"{self.MIN_SIZE} y {self.MAX_SIZE}"
+            )
+            return None
+
+        return rows, cols
+
+    def _draw(self):
+        self.screen.fill((30, 30, 30))
+
+        self._draw_title()
+        self._draw_label("Filas:", 120, 160)
+        self._draw_label("Columnas:", 80, 230)
+        self._draw_input(self.rows_rect, self.rows, self.active_field == "rows")
+        self._draw_input(self.cols_rect, self.cols, self.active_field == "cols")
+        self._draw_button()
+
+        if self.error_message:
+            self._draw_error()
+
+        self._draw_info()
+
+    def _draw_title(self):
+        text = self.title_font.render("AI-Maze", True, (255, 255, 255))
+
+        rect = text.get_rect(center = (self.width // 2, 70))
+
+        self.screen.blit(text, rect)
+
+    def _draw_label(self, text: str, x: int, y: int):
+        rendered = self.label_font.render(text, True, (255, 255, 255))
+
+        self.screen.blit(rendered, (x, y))
+
+    def _draw_input(self, rect, value: str, active: bool):
+        border_color = ((100, 180, 255) if active else (180, 180, 180))
+
+        pygame.draw.rect(self.screen, (50, 50, 50), rect)
+        pygame.draw.rect(self.screen, border_color, rect, 2)
+
+        text = self.input_font.render(value, True, (255, 255, 255))
+
+        text_rect = text.get_rect(center = rect.center)
+
+        self.screen.blit(text, text_rect)
+
+    def _draw_button(self):
+        pygame.draw.rect(self.screen, (70, 70, 70), self.button_rect)
+        pygame.draw.rect(self.screen, (180, 180, 180), self.button_rect, 2)
+
+        text = self.button_font.render("GENERAR", True, (255, 255, 255))
+
+        text_rect = text.get_rect(center = self.button_rect.center)
+
+        self.screen.blit(text, text_rect)
+
+    def _draw_error(self):
+        text = self.info_font.render(self.error_message, True, (255, 120, 120))
+
+        rect = text.get_rect(center=(self.width // 2, 390))
+
+        self.screen.blit(text, rect)
+
+    def _draw_info(self):
+        text = self.info_font.render(
+            "ENTER para generar. ESC para salir",
+            True, (180, 180, 180)
+        )
+
+        rect = text.get_rect(center = (self.width // 2 , 425))
+
+        self.screen.blit(text, rect)
