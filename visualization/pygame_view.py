@@ -8,15 +8,21 @@ class PygameMazeView:
     MAX_DELAY = 1000
     DELAY_STEP = 50
 
-    def __init__(self, maze: Maze, result:SolveResult, cell_size: int = 40, event_delay: int = 100):
+    PANEL_WIDTH = 240 # Panel lateral de estadísticas.
+    MIN_WINDOW_HEIGHT = 600
+
+    def __init__(self, maze: Maze, result:SolveResult, cell_size: int = 40, event_delay: int = 200):
         self.maze = maze
         self.result = result
 
         self.cell_size = cell_size
         self.event_delay = event_delay
 
-        self.width = maze.cols * cell_size
-        self.height = maze.rows * cell_size
+        self.maze_width = maze.cols * cell_size
+        self.maze_height = maze.rows * cell_size
+
+        self.width = (self.maze_width + self.PANEL_WIDTH)
+        self.height = max(self.maze_height, self.MIN_WINDOW_HEIGHT)
 
         self.screen = pygame.display.set_mode(
             (self.width, self.height)
@@ -25,6 +31,10 @@ class PygameMazeView:
         pygame.display.set_caption("AI-Maze")
 
         self.clock = pygame.time.Clock()
+
+        self.font = pygame.font.Font(None, 26)
+        self.small_font = pygame.font.Font(None, 21)
+        self.title_font = pygame.font.Font(None, 32)
 
         # Estado de la animación
         self.current_position = None
@@ -38,13 +48,16 @@ class PygameMazeView:
         self.finished = False
         self.paused = False
 
+        self.moves = 0
+        self.backtracks = 0
+
     def run(self):
         running = True
 
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    return "quit"
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
@@ -126,11 +139,140 @@ class PygameMazeView:
     def draw(self):
         self.screen.fill((30, 30, 30))
 
+        self._draw_maze()
+        self._draw_panel()
+
+    def _draw_maze(self):
         self._draw_edges()
         self._draw_walls()
         self._draw_start()
         self._draw_end()
         self._draw_agent()
+
+    def _draw_panel(self):
+        panel_x = self.maze_width
+
+        pygame.draw.rect(
+            self.screen,
+            (45, 45, 45),
+            (panel_x, 0, self.PANEL_WIDTH, self.height)
+        )
+
+        pygame.draw.line(
+            self.screen,
+            (100, 100, 100),
+            (panel_x, 0),
+            (panel_x, self.height),
+            2
+        )
+
+        self._draw_panel_title(panel_x)
+        self._draw_statistics(panel_x)
+        self._draw_controls(panel_x)
+
+    def _draw_panel_title(self, panel_x: int):
+        text = self.title_font.render(
+            "ESTADÍSTICAS",
+            True, (255, 255, 255)
+        )
+
+        rect = text.get_rect(
+            center = (panel_x + self.PANEL_WIDTH // 2, 35)
+        )
+
+        self.screen.blit(text, rect)
+
+    def _draw_statistics(self, panel_x: int):
+        x = panel_x + 20
+        y = 80
+
+        status = self._get_status()
+
+        self._draw_stat("Estado:", status, x, y)
+
+        y += 38
+
+        self._draw_stat("Velocidad:",
+                        f"{self.event_delay} ms",
+                        x, y)
+
+        y += 38
+
+        self._draw_stat("Evento:",
+                       (
+                           f"{self.event_index} /"
+                           f"{len(self.result.events)}"
+                       ), x, y)
+
+        y += 38
+
+        self._draw_stat("Pasos:", str(self.moves), x, y)
+
+        y += 38
+
+        self._draw_stat("Retrocesos:", str(self.backtracks), x, y)
+
+        y += 38
+
+        mark_1 = sum(1 for mark in self.edge_marks.values() if mark == 1)
+        self._draw_stat("Marca 1:", str(mark_1), x, y)
+
+        y += 38
+
+        mark_2 = sum(1 for mark in self.edge_marks.values() if mark == 2)
+        self._draw_stat("Marca 2:", str(mark_2), x, y)
+
+        y += 38
+
+        position = self.current_position
+        if position is None:
+            position_text = "-"
+        else:
+            position_text = str(position)
+
+        self._draw_stat("Posición:", position_text, x, y)
+
+    def _draw_stat(self, label: str, value: str, x: int, y: int):
+        label_text = self.small_font.render(label, True, (190, 190, 190))
+
+        value_text = self.small_font.render(value, True, (255, 255, 255))
+
+        self.screen.blit(label_text, (x, y))
+
+        value_rect = value_text.get_rect(right=self.width - 15, top=y)
+
+        self.screen.blit(value_text, value_rect)
+
+    def _draw_controls(self, panel_x: int):
+        y = self.height - 125
+
+        pygame.draw.line(
+            self.screen,
+            (100, 100, 100),
+            (panel_x + 15, y - 15),
+            (self.width - 15, y - 15),
+            1
+        )
+
+        controls = [
+            "SPACE  Pausar / Continuar",
+            "-      Reducir Velocidad",
+            "+      Aumentar Velocidad",
+            "ESC    Volver al Menú"
+        ]
+
+        for control in controls:
+            text = self.small_font.render(control, True, (190, 190, 190))
+
+            self.screen.blit(text, (panel_x + 15, y))
+
+            y += 25
+
+    def _get_status(self) -> str:
+        if self.finished: return "SOLVED"
+        if self.paused: return "PAUSED"
+
+        return "RUNNING"
 
     def _draw_walls(self):
         for row in range(self.maze.rows):
