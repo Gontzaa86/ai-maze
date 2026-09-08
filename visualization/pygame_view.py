@@ -4,7 +4,11 @@ from maze.maze import Maze
 from solvers.events import EventType, SolveResult
 
 class PygameMazeView:
-    def __init__(self, maze: Maze, result:SolveResult, cell_size: int = 40, event_delay: int = 120):
+    MIN_DELAY = 50
+    MAX_DELAY = 1000
+    DELAY_STEP = 50
+
+    def __init__(self, maze: Maze, result:SolveResult, cell_size: int = 40, event_delay: int = 100):
         self.maze = maze
         self.result = result
 
@@ -13,8 +17,6 @@ class PygameMazeView:
 
         self.width = maze.cols * cell_size
         self.height = maze.rows * cell_size
-
-        pygame.init()
 
         self.screen = pygame.display.set_mode(
             (self.width, self.height)
@@ -34,6 +36,7 @@ class PygameMazeView:
         self.last_event_time = pygame.time.get_ticks()
 
         self.finished = False
+        self.paused = False
 
     def run(self):
         running = True
@@ -43,6 +46,25 @@ class PygameMazeView:
                 if event.type == pygame.QUIT:
                     running = False
 
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        return "menu"
+                    if event.key == pygame.K_SPACE:
+                        self.paused = not self.paused
+
+                        self.last_event_time = pygame.time.get_ticks()
+
+                    elif (
+                        event.key == pygame.K_MINUS
+                        or event.unicode == "-"
+                    ):
+                        self._decrease_speed()
+                    elif (
+                        event.key == pygame.K_PLUS
+                        or event.unicode == "+"
+                    ):
+                        self._increase_speed()
+
             self._process_next_event()
 
             self.draw()
@@ -51,10 +73,13 @@ class PygameMazeView:
 
             self.clock.tick(60)
 
-        pygame.quit()
+        return "quit"
 
     def _process_next_event(self):
         if self.finished:
+            return
+
+        if self.paused:
             return
 
         now = pygame.time.get_ticks()
@@ -85,6 +110,18 @@ class PygameMazeView:
 
         if event.type == EventType.SOLVED:
             self.finished = True
+
+    def _decrease_speed(self):
+        self.event_delay = min(
+            self.MAX_DELAY,
+            self.event_delay + self.DELAY_STEP
+        )
+
+    def _increase_speed(self):
+        self.event_delay = max(
+            self.MIN_DELAY,
+            self.event_delay - self.DELAY_STEP
+        )
 
     def draw(self):
         self.screen.fill((30, 30, 30))

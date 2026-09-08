@@ -55,37 +55,43 @@ def main():
 
     menu = MazeMenu()
 
-    dimensions = menu.run()
+    running = True
 
-    if dimensions is None:
-        pygame.quit()
-        return
+    while running:
+        dimensions = menu.run()
 
-    rows, cols = dimensions
+        if dimensions is None:
+            break
 
-    print("Generando laberinto...")
+        rows, cols = dimensions
 
-    maze = create_maze(rows, cols)
+        print("Generando laberinto...")
 
-    print("Laberinto generado.")
+        maze = create_maze(rows, cols)
 
-    start = (0, 0)
-    end = (rows - 1, cols - 1)
+        print("Laberinto generado.")
 
-    print("Resolviendo con Trémaux...")
+        start = (0, 0)
+        end = (rows - 1, cols - 1)
 
-    result = solve_maze(maze, start, end)
+        print("Resolviendo con Trémaux...")
 
-    print("Laberinto resuelto.")
+        result = solve_maze(maze, start, end)
 
-    print_result(result)
+        print("Laberinto resuelto.")
 
-    print("Abriendo visualización...")
+        print_result(result)
 
-    pygame.display.quit()
+        print("Abriendo visualización...")
 
-    view = PygameMazeView(maze, result)
-    view.run()
+        view = PygameMazeView(maze, result)
+
+        action = view.run()
+
+        if action == "quit":
+            running = False
+
+    pygame.quit()
 
 if __name__ == "__main__":
     main()
