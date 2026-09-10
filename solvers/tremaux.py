@@ -3,6 +3,8 @@ from maze.cell import Cell
 
 from .events import EventType, SolverEvent, SolveResult
 
+from solvers.base import Solver
+
 """
 Regla 1
 - Si estamos en una intersección y existe un camino con 0 marcas, preferimos ese camino.
@@ -14,7 +16,7 @@ Regla 3
 - Nunca queremos elegir un camino con 2 marcas salvo que sea necesario para salir del laberinto.
 """
 
-class TremauxSolver:
+class TremauxSolver(Solver):
     def solve(self, maze: Maze, start: tuple[int, int], end: tuple[int, int]) -> SolveResult:
         if not maze.is_inside(*start):
             raise ValueError("La posición inicial no está dentro del laberinto.")
