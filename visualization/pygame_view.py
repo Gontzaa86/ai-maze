@@ -10,18 +10,41 @@ class PygameMazeView:
 
     PANEL_WIDTH = 240 # Panel lateral de estadísticas.
     MIN_WINDOW_HEIGHT = 600
+    MIN_CELL_SIZE = 10
+    SCREEN_MARGIN = 40 # Evitar que la ventana generada sea más grande que pantalla.
 
     def __init__(self, maze: Maze, result:SolveResult, cell_size: int = 40, event_delay: int = 200):
         self.maze = maze
         self.result = result
 
-        self.cell_size = cell_size
         self.event_delay = event_delay
 
         self.maze_width = maze.cols * cell_size
         self.maze_height = maze.rows * cell_size
 
         self.width = (self.maze_width + self.PANEL_WIDTH)
+        self.height = max(self.maze_height, self.MIN_WINDOW_HEIGHT)
+
+        screen_width , screen_height = pygame.display.get_desktop_sizes()[0]
+        max_width = screen_width - self.SCREEN_MARGIN
+        max_height = screen_height - self.SCREEN_MARGIN
+
+        available_maze_width = (max_width - self.PANEL_WIDTH)
+        available_maze_height = max_height
+
+        self.cell_size = min(
+            cell_size, 
+            available_maze_width // maze.cols,
+            available_maze_height // maze.rows
+        )
+        self.cell_size = max(
+            self.MIN_CELL_SIZE,
+            self.cell_size
+        )
+
+        self.maze_height = maze.rows * self.cell_size
+        self.maze_width = maze.cols * self.cell_size
+        self.width = self.maze_width + self.PANEL_WIDTH
         self.height = max(self.maze_height, self.MIN_WINDOW_HEIGHT)
 
         self.screen = pygame.display.set_mode(
