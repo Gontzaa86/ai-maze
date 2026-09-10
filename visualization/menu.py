@@ -30,9 +30,15 @@ class MazeMenu:
         # .Rect --> pygame object for storing rectangular coordinates (left, top, width, height)
         self.rows_rect = pygame.Rect(280, 150, 180, 45)
         self.cols_rect = pygame.Rect(280, 220, 180, 45)
-        self.button_rect = pygame.Rect(190, 300, 220, 60)
+        self.button_rect = pygame.Rect(190, 360, 220, 60)
 
         self.error_message = ""
+
+        self.solver_options = [
+            "tremaux",
+        ]
+        self.selected_solver = 0
+        self.solver_rect = pygame.Rect(280, 290, 180, 45)
 
     def run(self):
         running = True
@@ -64,6 +70,8 @@ class MazeMenu:
 
                         if dimensions is not None:
                             return dimensions
+                    elif self.solver_rect.collidepoint(event.pos):
+                        self._next_solver()
 
             self._draw()
 
@@ -115,7 +123,7 @@ class MazeMenu:
             )
             return None
 
-        return rows, cols
+        return rows, cols, self._get_selected_solver()
 
     def _draw(self):
         self.screen.fill((30, 30, 30))
@@ -126,6 +134,8 @@ class MazeMenu:
         self._draw_input(self.rows_rect, self.rows, self.active_field == "rows")
         self._draw_input(self.cols_rect, self.cols, self.active_field == "cols")
         self._draw_button()
+        self._draw_label("Algoritmo:", 70, 300)
+        self._draw_solver_selector()
 
         if self.error_message:
             self._draw_error()
@@ -169,7 +179,7 @@ class MazeMenu:
     def _draw_error(self):
         text = self.info_font.render(self.error_message, True, (255, 120, 120))
 
-        rect = text.get_rect(center=(self.width // 2, 390))
+        rect = text.get_rect(center=(self.width // 2, 455))
 
         self.screen.blit(text, rect)
 
@@ -179,6 +189,35 @@ class MazeMenu:
             True, (180, 180, 180)
         )
 
-        rect = text.get_rect(center = (self.width // 2 , 425))
+        rect = text.get_rect(center = (self.width // 2 , 480))
 
         self.screen.blit(text, rect)
+
+    def _draw_solver_selector(self):
+        pygame.draw.rect(self.screen, (50, 50, 50), self.solver_rect)
+
+        pygame.draw.rect(self.screen, (180, 180, 180), self.solver_rect, 2)
+
+        solver_name = self._get_selected_solver()
+
+        display_name = {
+            "tremaux": "Trémaux",
+        }[solver_name]
+
+        text = self.input_font.render(display_name, True, (255, 255, 255))
+
+        text_rect = text.get_rect(center = self.solver_rect.center)
+
+        self.screen.blit(text, text_rect)
+
+    def _next_solver(self):
+        self.selected_solver = (
+            self.selected_solver + 1
+        ) % len(self.solver_options)
+
+        self.error_message = ""
+
+    def _get_selected_solver(self) -> str:
+        return self.solver_options[
+            self.selected_solver
+        ]

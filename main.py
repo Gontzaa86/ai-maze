@@ -3,23 +3,34 @@ import pygame # type: ignore
 from maze.generator import RecursiveBacktrackingGenerator
 from maze.maze import Maze
 
+from solvers.base import Solver
 from solvers.tremaux import TremauxSolver
 from solvers.events import EventType, SolveResult
 
 from visualization.pygame_view import PygameMazeView
 from visualization.menu import MazeMenu
 
-
 def create_maze(rows: int, cols: int) -> Maze:
     generator = RecursiveBacktrackingGenerator()
 
     return generator.generate(rows, cols)
 
-def solve_maze(maze: Maze, start: tuple[int, int], end: tuple[int, int]) -> SolveResult:
-
-    solver = TremauxSolver()
-
+def solve_maze(solver: Solver, maze: Maze, start: tuple[int, int], end: tuple[int, int]) -> SolveResult:
     return solver.solve(maze, start, end)
+
+def create_solver(name: str = "tremaux") -> Solver:
+    solvers = {
+        "tremaux": TremauxSolver,
+    }
+
+    try:
+        solver_class = solvers[name.lower()]
+    except KeyError:
+        raise ValueError(
+            f"Solver desconocido: {name}"
+        )
+
+    return solver_class()
 
 def print_result(result: SolveResult):
     moves = sum(
@@ -49,11 +60,12 @@ def print_result(result: SolveResult):
     print("Solución:")
     print(result.solution)
 
-
 def main():
     pygame.init()
 
     menu = MazeMenu()
+
+    solver = TremauxSolver() # A futuro, un selector.
 
     running = True
 
@@ -63,7 +75,9 @@ def main():
         if dimensions is None:
             break
 
-        rows, cols = dimensions
+        rows, cols, solver_name = dimensions
+
+        print(f"Algoritmo seleccionado: {solver_name}")
 
         print("Generando laberinto...")
 
@@ -74,9 +88,11 @@ def main():
         start = (0, 0)
         end = (rows - 1, cols - 1)
 
-        print("Resolviendo con Trémaux...")
+        solver = create_solver(solver_name)
 
-        result = solve_maze(maze, start, end)
+        print(f"Resolviendo con {solver_name}...")
+
+        result = solve_maze(solver, maze, start, end)
 
         print("Laberinto resuelto.")
 
