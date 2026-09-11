@@ -1,12 +1,14 @@
 import pygame # type: ignore
 
+from solvers.registry import get_solvers
+
 class MazeMenu:
     MIN_SIZE = 2
     MAX_SIZE = 50
 
     def __init__(self):
         self.width = 600
-        self.height = 450
+        self.height = 500
 
         self.screen = pygame.display.set_mode(
             (self.width, self.height)
@@ -34,10 +36,9 @@ class MazeMenu:
 
         self.error_message = ""
 
-        self.solver_options = [
-            "tremaux",
-        ]
+        self.solvers = get_solvers()
         self.selected_solver = 0
+
         self.solver_rect = pygame.Rect(280, 290, 180, 45)
 
     def run(self):
@@ -200,9 +201,7 @@ class MazeMenu:
 
         solver_name = self._get_selected_solver()
 
-        display_name = {
-            "tremaux": "Trémaux",
-        }[solver_name]
+        display_name = self._get_selected_solver_display_name()
 
         text = self.input_font.render(display_name, True, (255, 255, 255))
 
@@ -213,11 +212,12 @@ class MazeMenu:
     def _next_solver(self):
         self.selected_solver = (
             self.selected_solver + 1
-        ) % len(self.solver_options)
+        ) % len(self.solvers)
 
         self.error_message = ""
 
     def _get_selected_solver(self) -> str:
-        return self.solver_options[
-            self.selected_solver
-        ]
+        return self.solvers[self.selected_solver].metadata.name
+
+    def _get_selected_solver_display_name(self) -> str:
+        return self.solvers[self.selected_solver].metadata.display_name

@@ -5,6 +5,8 @@ from .events import EventType, SolverEvent, SolveResult
 
 from solvers.base import Solver
 
+from solvers.registry import register_solver
+
 """
 Regla 1
 - Si estamos en una intersección y existe un camino con 0 marcas, preferimos ese camino.
@@ -16,6 +18,12 @@ Regla 3
 - Nunca queremos elegir un camino con 2 marcas salvo que sea necesario para salir del laberinto.
 """
 
+@register_solver(
+    name = "tremaux",
+    display_name = "Trémaux",
+    description = "Algoritmo de exploración basado en marcas de aristas.",
+    category = "classic"
+)
 class TremauxSolver(Solver):
     def solve(self, maze: Maze, start: tuple[int, int], end: tuple[int, int]) -> SolveResult:
         if not maze.is_inside(*start):

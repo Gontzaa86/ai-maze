@@ -4,8 +4,8 @@ from maze.generator import RecursiveBacktrackingGenerator
 from maze.maze import Maze
 
 from solvers.base import Solver
-from solvers.tremaux import TremauxSolver
 from solvers.events import EventType, SolveResult
+from solvers.registry import create_solver, discover_solvers
 
 from visualization.pygame_view import PygameMazeView
 from visualization.menu import MazeMenu
@@ -17,20 +17,6 @@ def create_maze(rows: int, cols: int) -> Maze:
 
 def solve_maze(solver: Solver, maze: Maze, start: tuple[int, int], end: tuple[int, int]) -> SolveResult:
     return solver.solve(maze, start, end)
-
-def create_solver(name: str = "tremaux") -> Solver:
-    solvers = {
-        "tremaux": TremauxSolver,
-    }
-
-    try:
-        solver_class = solvers[name.lower()]
-    except KeyError:
-        raise ValueError(
-            f"Solver desconocido: {name}"
-        )
-
-    return solver_class()
 
 def print_result(result: SolveResult):
     moves = sum(
@@ -63,9 +49,9 @@ def print_result(result: SolveResult):
 def main():
     pygame.init()
 
-    menu = MazeMenu()
+    discover_solvers()
 
-    solver = TremauxSolver() # A futuro, un selector.
+    menu = MazeMenu()
 
     running = True
 
