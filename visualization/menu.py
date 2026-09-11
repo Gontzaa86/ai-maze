@@ -39,6 +39,9 @@ class MazeMenu:
         self.solvers = get_solvers()
         self.selected_solver = 0
 
+        if not self.solvers:
+            raise RuntimeError("No hay solvers disponibles.")
+
         self.solver_rect = pygame.Rect(280, 290, 180, 45)
 
     def run(self):
