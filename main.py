@@ -1,6 +1,7 @@
 import pygame # type: ignore
 
 from maze.generator import RecursiveBacktrackingGenerator
+from maze.cyclic_generator import CyclicMazeGenerator
 from maze.maze import Maze
 
 from solvers.base import Solver
@@ -10,13 +11,24 @@ from solvers.registry import create_solver, discover_solvers
 from visualization.pygame_view import PygameMazeView
 from visualization.menu import MazeMenu
 
-def create_maze(rows: int, cols: int) -> Maze:
-    generator = RecursiveBacktrackingGenerator()
-
+def create_maze(generator, rows: int, cols: int) -> Maze:
     return generator.generate(rows, cols)
 
 def solve_maze(solver: Solver, maze: Maze, start: tuple[int, int], end: tuple[int, int]) -> SolveResult:
     return solver.solve(maze, start, end)
+
+def create_generator(name: str):
+    generators = {
+        "recursive_backtracking": RecursiveBacktrackingGenerator,
+        "cyclic": CyclicMazeGenerator,
+    }
+
+    try:
+        generator_class = generators[name.lower()]
+    except KeyError as exc:
+        raise ValueError(f"Generador desconocido: {name}") from exc
+
+    return generator_class()
 
 def print_result(result: SolveResult):
     moves = sum(
@@ -61,13 +73,16 @@ def main():
         if dimensions is None:
             break
 
-        rows, cols, solver_name = dimensions
+        rows, cols, generator_name, solver_name = dimensions
 
+        print(f"Generador seleccionado: {generator_name}")
         print(f"Algoritmo seleccionado: {solver_name}")
+
+        generator = create_generator(generator_name)
 
         print("Generando laberinto...")
 
-        maze = create_maze(rows, cols)
+        maze = create_maze(generator, rows, cols)
 
         print("Laberinto generado.")
 

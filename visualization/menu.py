@@ -8,7 +8,7 @@ class MazeMenu:
 
     def __init__(self):
         self.width = 600
-        self.height = 500
+        self.height = 570
 
         self.screen = pygame.display.set_mode(
             (self.width, self.height)
@@ -32,7 +32,7 @@ class MazeMenu:
         # .Rect --> pygame object for storing rectangular coordinates (left, top, width, height)
         self.rows_rect = pygame.Rect(280, 150, 180, 45)
         self.cols_rect = pygame.Rect(280, 220, 180, 45)
-        self.button_rect = pygame.Rect(190, 360, 220, 60)
+        self.button_rect = pygame.Rect(190, 430, 220, 60)
 
         self.error_message = ""
 
@@ -43,6 +43,14 @@ class MazeMenu:
             raise RuntimeError("No hay solvers disponibles.")
 
         self.solver_rect = pygame.Rect(280, 290, 180, 45)
+
+        self.generator_options = [
+            "recursive_backtracking",
+            "cyclic",
+        ]
+        self.selected_generator = 0
+
+        self.generator_rect = pygame.Rect(280, 360, 180, 45)
 
     def run(self):
         running = True
@@ -69,13 +77,17 @@ class MazeMenu:
                     elif self.cols_rect.collidepoint(event.pos):
                         self.active_field = "cols"
                         self.error_message = ""
+
                     elif self.button_rect.collidepoint(event.pos):
                         dimensions = self._create_dimensions()
 
                         if dimensions is not None:
                             return dimensions
+                        
                     elif self.solver_rect.collidepoint(event.pos):
                         self._next_solver()
+                    elif self.generator_rect.collidepoint(event.pos):
+                        self._next_generator()
 
             self._draw()
 
@@ -127,7 +139,7 @@ class MazeMenu:
             )
             return None
 
-        return rows, cols, self._get_selected_solver()
+        return rows, cols, self._get_selected_generator(), self._get_selected_solver()
 
     def _draw(self):
         self.screen.fill((30, 30, 30))
@@ -138,7 +150,9 @@ class MazeMenu:
         self._draw_input(self.rows_rect, self.rows, self.active_field == "rows")
         self._draw_input(self.cols_rect, self.cols, self.active_field == "cols")
         self._draw_button()
-        self._draw_label("Algoritmo:", 70, 300)
+        self._draw_label("Generador:", 70, 300)
+        self._draw_generator_selector()
+        self._draw_label("Algoritmo:", 70, 370)
         self._draw_solver_selector()
 
         if self.error_message:
@@ -212,6 +226,19 @@ class MazeMenu:
 
         self.screen.blit(text, text_rect)
 
+    def _draw_generator_selector(self):
+        pygame.draw.rect(self.screen, (50, 50, 50), self.generator_rect)
+
+        pygame.draw.rect(self.screen, (180, 180, 180), self.generator_rect, 2)
+
+        display_name = self._get_selected_generator_display_name()
+
+        text = self.input_font.render(display_name, True, (255, 255, 255))
+
+        text_rect = text.get_rect(center = self.generator_rect.center)
+
+        self.screen.blit(text, text_rect)
+
     def _next_solver(self):
         self.selected_solver = (
             self.selected_solver + 1
@@ -224,3 +251,21 @@ class MazeMenu:
 
     def _get_selected_solver_display_name(self) -> str:
         return self.solvers[self.selected_solver].metadata.display_name
+
+    def _next_generator(self):
+        self.selected_generator = (
+            self.selected_generator + 1
+        ) % len(self.generator_options)
+
+        self.error_message = ""
+
+    def _get_selected_generator(self) -> str:
+        return self.generator_options[self.selected_generator]
+
+    def _get_selected_generator_display_name(self) -> str:
+        display_names = {
+            "recursive_backtracking": "Perfecto",
+            "cyclic": "Cíclico",
+        }
+
+        return display_names[self._get_selected_generator()]

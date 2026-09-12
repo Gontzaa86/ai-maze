@@ -3,6 +3,7 @@ import random
 from .maze import Maze
 from .cell import Cell
 
+# Genera laberintos perfectos (1 solo camino hasta la meta)
 class RecursiveBacktrackingGenerator:
     def generate(self, rows: int, cols: int) -> Maze:
         maze = Maze(rows, cols)
