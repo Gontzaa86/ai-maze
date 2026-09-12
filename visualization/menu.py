@@ -1,6 +1,7 @@
 import pygame # type: ignore
 
 from solvers.registry import get_solvers
+from maze.registry import get_generators
 
 class MazeMenu:
     MIN_SIZE = 2
@@ -44,10 +45,7 @@ class MazeMenu:
 
         self.solver_rect = pygame.Rect(280, 290, 180, 45)
 
-        self.generator_options = [
-            "recursive_backtracking",
-            "cyclic",
-        ]
+        self.generators = get_generators()
         self.selected_generator = 0
 
         self.generator_rect = pygame.Rect(280, 360, 180, 45)
@@ -255,17 +253,12 @@ class MazeMenu:
     def _next_generator(self):
         self.selected_generator = (
             self.selected_generator + 1
-        ) % len(self.generator_options)
+        ) % len(self.generators)
 
         self.error_message = ""
 
     def _get_selected_generator(self) -> str:
-        return self.generator_options[self.selected_generator]
+        return self.generators[self.selected_generator].metadata.name
 
     def _get_selected_generator_display_name(self) -> str:
-        display_names = {
-            "recursive_backtracking": "Perfecto",
-            "cyclic": "Cíclico",
-        }
-
-        return display_names[self._get_selected_generator()]
+        return self.generators[self.selected_generator].metadata.display_name

@@ -1,8 +1,7 @@
 import pygame # type: ignore
 
-from maze.generator import RecursiveBacktrackingGenerator
-from maze.cyclic_generator import CyclicMazeGenerator
 from maze.maze import Maze
+from maze.registry import create_generator, discover_generators
 
 from solvers.base import Solver
 from solvers.events import EventType, SolveResult
@@ -16,19 +15,6 @@ def create_maze(generator, rows: int, cols: int) -> Maze:
 
 def solve_maze(solver: Solver, maze: Maze, start: tuple[int, int], end: tuple[int, int]) -> SolveResult:
     return solver.solve(maze, start, end)
-
-def create_generator(name: str):
-    generators = {
-        "recursive_backtracking": RecursiveBacktrackingGenerator,
-        "cyclic": CyclicMazeGenerator,
-    }
-
-    try:
-        generator_class = generators[name.lower()]
-    except KeyError as exc:
-        raise ValueError(f"Generador desconocido: {name}") from exc
-
-    return generator_class()
 
 def print_result(result: SolveResult):
     moves = sum(
@@ -61,6 +47,7 @@ def print_result(result: SolveResult):
 def main():
     pygame.init()
 
+    discover_generators()
     discover_solvers()
 
     menu = MazeMenu()

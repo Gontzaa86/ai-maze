@@ -4,7 +4,15 @@ from .maze import Maze
 
 from .generator import RecursiveBacktrackingGenerator
 
+from .registry import register_generator
+
 # Busca crear laberintos "no perfectos" (tengas más de un camino a la solución)
+@register_generator(
+    name = "cyclic",
+    display_name = "Cíclico",
+    description = "Genera laberintos con conexiones adicionales y ciclos.",
+    category = "classic"
+)
 class CyclicMazeGenerator:
     def __init__(self, extra_connections: int = 5):
         if extra_connections < 0:
