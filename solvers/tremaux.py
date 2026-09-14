@@ -38,6 +38,12 @@ class TremauxSolver(Solver):
         # La pila representa el camino actual.
         path = [start]
 
+        # Celdas que ya hemos visitado.
+        visited = {start}
+
+        # Padre de cada celda dentro del árbol de exploración.
+        parent: dict[tuple[int, int], tuple[int, int] | None] = {start: None}
+
         events = [
             SolverEvent(
                 type = EventType.START,
@@ -45,17 +51,28 @@ class TremauxSolver(Solver):
             )
         ]
 
-        current = start
+        while path:
+            current = path[-1]
 
-        while current != end:
+            if current == end:
+                events.append(SolverEvent(
+                    type = EventType.SOLVED,
+                    position = end
+                ))
+
+                return SolveResult(
+                    solution = path.copy(),
+                    events = events,
+                    edge_marks = edge_marks
+                )
+
             cell = maze.get_cell(*current)
 
             neighbors = self._get_open_neighbors(maze, cell)
 
-            # ----------------------------------------
-            # 1º Preferencia de Trémaux:
-            #   - Buscar una arista con marca 0.
-            # ----------------------------------------
+            # ------------------------------------------------
+            # 1. Preferimos siempre una arista con marca 0.
+            # ------------------------------------------------
 
             unmarked = [
                 neighbor
@@ -79,67 +96,60 @@ class TremauxSolver(Solver):
                     )
                 )
 
-                current = neighbor
-                path.append(current)
+                # --------------------------------------------
+                # La arista lleva a una celda nueva: pasa a formar parte del árbol de exploración.
+                # --------------------------------------------
 
-                continue
+                if neighbor not in visited:
+                    visited.add(neighbor)
 
-            # ----------------------------------------
-            # 2º Preferencia de Trémaux:
-            #   - Si no quedan aristas 0.
-            #   - Buscamos aristas marcadas con 1.
-            # ----------------------------------------
+                    parent[neighbor] = current
 
-            once_marked = [
-                neighbor
-                for neighbor in neighbors
-                if self._get_edge_mark(edge_marks, current, neighbor) == 1
-            ]
+                    path.append(neighbor)
 
-            if once_marked:
-                neighbor = once_marked[0]
+                    continue
+
+                # --------------------------------------------
+                # La celda ya había sido visitada.
+                # Esta es una arista de ciclo / no perteneciente al árbol de exploración.
+                # La marcamos 1 -> 2 inmediatamente y volvemos.
+                # --------------------------------------------
 
                 new_mark = self._traverse_edge(edge_marks, current, neighbor)
 
-                events.append(
-                    SolverEvent(
-                        EventType.BACKTRACK,
-                        position = neighbor,
-                        from_position = current,
-                        to_position = neighbor,
-                        mark = new_mark
-                    )
-                )
-
-                current = neighbor
-
-                # Si volvemos a una posición anterior, actualizamos la representación del camino actual.
-                if len(path) > 1 and neighbor == path[-2]:
-                    path.pop()
-                else:
-                    path.append(neighbor)
+                events.append(SolverEvent(
+                    EventType.BACKTRACK,
+                    position = current,
+                    from_position = neighbor,
+                    to_position = current,
+                    mark = new_mark
+                ))
 
                 continue
 
-            # ----------------------------------------
-            # 3º Preferencia de Trémaux:
-            #   - No quedan caminos disponibles.
-            # ----------------------------------------
+            # ------------------------------------------------
+            # 2. No quedan aristas nuevas.
+            # Debemos retroceder por la arista que nos llevó hasta esta celda.
+            # ------------------------------------------------
 
-            raise RuntimeError("No existe una solución.")
+            previous = parent[current]
 
-        events.append(
-            SolverEvent(
-                EventType.SOLVED,
-                position = end
-            )
-        )
+            if previous is None:
+                raise RuntimeError("No existe una solución.")
 
-        return SolveResult(
-            solution = path,
-            events = events,
-            edge_marks = edge_marks
-        )
+            new_mark = self._traverse_edge(edge_marks, current, previous)
+
+            events.append(SolverEvent(
+                EventType.BACKTRACK,
+                position = previous,
+                from_position = current,
+                to_position = previous,
+                mark = new_mark
+            ))
+
+            path.pop()
+
+        raise RuntimeError("No existe una solución.")
 
     def _get_open_neighbors(self, maze: Maze, cell: Cell) -> list[tuple[int, int]]:
         neighbors = []
