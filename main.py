@@ -1,7 +1,8 @@
 import pygame # type: ignore
 
 from maze.maze import Maze
-from maze.registry import create_generator, discover_generators
+
+from generators.registry import create_generator, discover_generators
 
 from solvers.base import Solver
 from solvers.events import EventType, SolveResult

@@ -1,4 +1,4 @@
-from maze.generator import RecursiveBacktrackingGenerator
+from generators.recursive_backtracking import RecursiveBacktrackingGenerator
 from solvers.tremaux import TremauxSolver
 from solvers.events import EventType
 

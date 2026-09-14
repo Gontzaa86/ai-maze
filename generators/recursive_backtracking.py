@@ -1,7 +1,7 @@
 import random
 
-from .maze import Maze
-from .cell import Cell
+from maze.maze import Maze
+from maze.cell import Cell
 
 from .registry import register_generator
 

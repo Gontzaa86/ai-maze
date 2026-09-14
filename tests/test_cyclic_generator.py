@@ -1,6 +1,6 @@
-import pytest
+import pytest # type: ignore
 
-from maze.cyclic_generator import CyclicMazeGenerator
+from generators.cyclic import CyclicMazeGenerator
 
 def count_open_edges(maze):
     edges = 0

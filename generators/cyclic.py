@@ -1,8 +1,8 @@
 import random
 
-from .maze import Maze
+from maze.maze import Maze
 
-from .generator import RecursiveBacktrackingGenerator
+from .recursive_backtracking import RecursiveBacktrackingGenerator
 
 from .registry import register_generator
 

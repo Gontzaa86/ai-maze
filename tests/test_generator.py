@@ -1,4 +1,4 @@
-from maze.generator import RecursiveBacktrackingGenerator
+from generators.recursive_backtracking import RecursiveBacktrackingGenerator
 
 def test_generator_creates_correct_dimensions():
     generator = RecursiveBacktrackingGenerator()

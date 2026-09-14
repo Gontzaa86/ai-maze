@@ -61,7 +61,7 @@ def register_generator(
 
     return decorator
 
-def discover_generators(package_name: str = "maze") -> None:
+def discover_generators(package_name: str = "generators") -> None:
     try:
         package = importlib.import_module(package_name)
     except ImportError as exc:

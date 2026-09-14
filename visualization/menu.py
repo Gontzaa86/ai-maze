@@ -1,7 +1,7 @@
 import pygame # type: ignore
 
 from solvers.registry import get_solvers
-from maze.registry import get_generators
+from generators.registry import get_generators
 
 class MazeMenu:
     MIN_SIZE = 2
@@ -47,6 +47,9 @@ class MazeMenu:
 
         self.generators = get_generators()
         self.selected_generator = 0
+
+        if not self.generators:
+            raise RuntimeError("No hay generadores disponibles.")
 
         self.generator_rect = pygame.Rect(280, 360, 180, 45)
 

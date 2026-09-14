@@ -1,4 +1,4 @@
-import pytest
+import pytest # type: ignore
 
 from maze.maze import Maze
 

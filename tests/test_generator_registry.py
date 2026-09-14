@@ -1,7 +1,7 @@
 import pytest # type: ignore
 
-from maze.generator import RecursiveBacktrackingGenerator
-from maze.registry import GeneratorRegistryError, create_generator, discover_generators, get_generator, get_generator_names, register_generator
+from generators.recursive_backtracking import RecursiveBacktrackingGenerator
+from generators.registry import GeneratorRegistryError, create_generator, discover_generators, get_generator, get_generator_names, register_generator
 
 discover_generators()
 
