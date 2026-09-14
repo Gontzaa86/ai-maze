@@ -14,21 +14,22 @@ from .registry import register_generator
     category = "classic"
 )
 class CyclicMazeGenerator:
-    def __init__(self, extra_connections: int = 5):
+    def __init__(self, extra_connections: int = 5, seed: int | None = None):
         if extra_connections < 0:
             raise ValueError("El número de conexiones adicionales no puede ser negativo.")
 
         self.extra_connections = extra_connections
+        self.random = random.Random(seed)
 
     def generate(self, rows: int, cols: int) -> Maze:
-        maze = RecursiveBacktrackingGenerator().generate(rows, cols)
+        maze = RecursiveBacktrackingGenerator(rng = self.random).generate(rows, cols)
 
         candidates = self._get_closed_internal_walls(maze)
 
         if self.extra_connections > len(candidates):
             raise ValueError("No hay suficientes paredes internas para crear tantas conexiones.")
 
-        selected = random.sample(candidates, self.extra_connections)
+        selected = self.random.sample(candidates, self.extra_connections)
 
         for current, neighbor in selected:
             maze.remove_wall(current, neighbor)

@@ -104,7 +104,7 @@ def get_generator(name: str) -> GeneratorInfo:
     except KeyError as exc:
         raise GeneratorRegistryError(f"Generador desconocido: {name}") from exc
 
-def create_generator(name: str):
+def create_generator(name: str, **kwargs):
     info = get_generator(name)
 
-    return info.generator_class()
+    return info.generator_class(**kwargs)

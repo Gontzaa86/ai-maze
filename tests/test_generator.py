@@ -124,3 +124,21 @@ def test_small_mazes():
 
         assert maze.rows == rows
         assert maze.cols == cols
+
+def test_same_seed_generates_same_maze():
+    generator_a = RecursiveBacktrackingGenerator(seed=12345)
+    generator_b = RecursiveBacktrackingGenerator(seed=12345)
+
+    maze_a = generator_a.generate(10, 10)
+    maze_b = generator_b.generate(10, 10)
+
+    assert maze_a.grid == maze_b.grid
+
+def test_different_seeds_generate_different_mazes():
+    generator_a = RecursiveBacktrackingGenerator(seed=12345)
+    generator_b = RecursiveBacktrackingGenerator(seed=54321)
+
+    maze_a = generator_a.generate(10, 10)
+    maze_b = generator_b.generate(10, 10)
+
+    assert maze_a.grid != maze_b.grid

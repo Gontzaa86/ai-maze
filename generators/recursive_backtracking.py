@@ -13,6 +13,9 @@ from .registry import register_generator
     category = "classic"
 )
 class RecursiveBacktrackingGenerator:
+    def __init__(self, seed: int | None = None, rng: random.Random | None = None):
+        self.random = rng or random.Random(seed) # Generar laberintos mediante semillas. De modo que se genere el mismo siempre
+
     def generate(self, rows: int, cols: int) -> Maze:
         maze = Maze(rows, cols)
 
@@ -32,7 +35,7 @@ class RecursiveBacktrackingGenerator:
                 stack.pop()
                 continue
 
-            neighbor = random.choice(neighbors)
+            neighbor = self.random.choice(neighbors)
 
             maze.remove_wall(current, neighbor)
 

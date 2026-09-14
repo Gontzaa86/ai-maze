@@ -61,12 +61,12 @@ def main():
         if dimensions is None:
             break
 
-        rows, cols, generator_name, solver_name = dimensions
+        rows, cols, generator_name, solver_name, seed = dimensions
 
         print(f"Generador seleccionado: {generator_name}")
         print(f"Algoritmo seleccionado: {solver_name}")
 
-        generator = create_generator(generator_name)
+        generator = create_generator(generator_name, seed = seed)
 
         print("Generando laberinto...")
 

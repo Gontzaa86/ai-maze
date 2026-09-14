@@ -102,3 +102,19 @@ def test_register_empty_name():
 
             def generate(self, rows, cols):
                 return None
+
+def test_create_generator_accepts_kwargs():
+    generator_a = create_generator(
+        "recursive_backtracking",
+        seed=12345
+    )
+
+    generator_b = create_generator(
+        "recursive_backtracking",
+        seed=12345
+    )
+
+    maze_a = generator_a.generate(10, 10)
+    maze_b = generator_b.generate(10, 10)
+
+    assert maze_a.grid == maze_b.grid
