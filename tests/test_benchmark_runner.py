@@ -1,6 +1,10 @@
+from pathlib import Path
+
 from benchmark.runner import BenchmarkRunner
+from benchmark.run_benchmark import run_benchmark
 
 from generators.recursive_backtracking import RecursiveBacktrackingGenerator
+from generators.cyclic import CyclicMazeGenerator
 
 from solvers.bfs import BFSSolver
 
@@ -156,3 +160,111 @@ def test_benchmark_runner_generates_same_maze():
             cell_b = maze_b.get_cell(row, col)
 
             assert cell_a.walls == cell_b.walls
+
+def test_benchmark_record_uses_registry_names():
+
+    generator = RecursiveBacktrackingGenerator(seed=12345)
+
+    solver = BFSSolver()
+
+    runner = BenchmarkRunner()
+
+    result = runner.run(
+        generator=generator,
+        solver=solver,
+        rows=5,
+        cols=5,
+        start=(0, 0),
+        end=(4, 4),
+    )
+
+    assert result.record.generator == "recursive_backtracking"
+    assert result.record.solver == "bfs"
+    assert result.record.seed == 12345
+
+def test_benchmark_runner_with_cyclic_generator():
+
+    generator = CyclicMazeGenerator(
+        extra_connections=5,
+        seed=12345,
+    )
+
+    solver = BFSSolver()
+
+    runner = BenchmarkRunner()
+
+    result = runner.run(
+        generator=generator,
+        solver=solver,
+        rows=5,
+        cols=5,
+        start=(0, 0),
+        end=(4, 4),
+    )
+
+    assert result.metrics.success is True
+    assert result.metrics.solution_length > 0
+    assert result.metrics.moves > 0
+
+    assert result.record.generator == "cyclic"
+    assert result.record.solver == "bfs"
+    assert result.record.seed == 12345
+
+def test_run_benchmark_creates_valid_csv(tmp_path):
+
+    filepath = tmp_path / "benchmark.csv"
+
+    benchmark_run = run_benchmark(
+        generator=CyclicMazeGenerator,
+        solver=BFSSolver,
+        rows=5,
+        cols=5,
+        start=(0, 0),
+        end=(4, 4),
+        seed_count=3,
+        seed=12345,
+        filepath=filepath,
+    )
+
+    assert len(benchmark_run.records) == 3
+    assert filepath.exists()
+
+    lines = filepath.read_text(
+        encoding="utf-8"
+    ).strip().splitlines()
+
+    assert len(lines) == 4
+
+    header = lines[0]
+
+    assert header == (
+        "generator,solver,rows,cols,seed,"
+        "solution_length,moves,backtracks,success,"
+        "visited_cells,execution_time"
+    )
+
+    for line in lines[1:]:
+
+        columns = line.split(",")
+
+        assert len(columns) == 11
+
+        assert columns[0] == "cyclic"
+        assert columns[1] == "bfs"
+        assert columns[2] == "5"
+        assert columns[3] == "5"
+        assert columns[4].isdigit()
+
+        assert int(columns[5]) >= 1
+        assert int(columns[6]) >= 0
+        assert int(columns[7]) >= 0
+        assert columns[8] == "True"
+        assert int(columns[9]) >= 1
+
+        float(columns[10])
+
+    assert benchmark_run.summary.total_runs == 3
+    assert benchmark_run.summary.successful_runs == 3
+    assert benchmark_run.summary.average_solution_length >= 1
+    assert benchmark_run.summary.average_moves >= 0
+    assert benchmark_run.summary.total_execution_time >= 0

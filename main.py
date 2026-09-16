@@ -2,14 +2,16 @@ import pygame # type: ignore
 
 from maze.maze import Maze
 
-from generators.registry import create_generator, discover_generators
+from generators.registry import create_generator, discover_generators, get_generators
 
 from solvers.base import Solver
 from solvers.events import EventType, SolveResult
-from solvers.registry import create_solver, discover_solvers
+from solvers.registry import create_solver, discover_solvers, get_solvers
 
 from visualization.pygame_view import PygameMazeView
 from visualization.menu import MazeMenu
+
+from benchmark.run_benchmark import run_benchmark
 
 def create_maze(generator, rows: int, cols: int) -> Maze:
     return generator.generate(rows, cols)
@@ -45,6 +47,51 @@ def print_result(result: SolveResult):
     print("Solución:")
     print(result.solution)
 
+def run_benchmark_mode():
+    print()
+    print("=== BENCHMARK ===")
+    print()
+
+    generator_name = "cyclic"
+    solver_name = "bfs"
+
+    print(f"Generador: {generator_name}")
+    print(f"Solver: {solver_name}")
+    print("Tamaño: 20 x 20")
+    print("Laberintos: 10")
+    print("Seed base: 12345")
+    print()
+
+    generator_info = next(info for info in get_generators() if info.metadata.name == generator_name)
+    solver_info = next(info for info in get_solvers() if info.metadata.name == solver_name)
+
+    benchmark_run = run_benchmark(
+        generator=generator_info.generator_class,
+        solver=solver_info.solver_class,
+        rows=20,
+        cols=20,
+        start=(0, 0),
+        end=(19, 19),
+        seed_count=10,
+        seed=12345,
+        filepath="benchmark_results.csv"
+    )
+
+    summary = benchmark_run.summary
+
+    print("=== BENCHMARK COMPLETADO ===")
+    print()
+
+    print(f"Laberintos:             {summary.total_runs}")
+    print(f"Exitosos:               {summary.successful_runs}")
+    print(f"Longitud media:         {summary.average_solution_length:.2f}")
+    print(f"Movimientos medios:     {summary.average_moves:.2f}")
+    print(f"Tiempo total:           {summary.total_execution_time:.6f}s")
+
+    print()
+    print("CSV generado: benchmark_results.csv")
+    print()
+
 def main():
     pygame.init()
 
@@ -60,6 +107,9 @@ def main():
 
         if dimensions is None:
             break
+        if dimensions == ("benchmark",):
+            run_benchmark_mode()
+            continue
 
         rows, cols, generator_name, solver_name, seed = dimensions
 

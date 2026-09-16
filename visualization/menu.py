@@ -67,10 +67,13 @@ class MazeMenu:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         return None
+                    if event.key == pygame.K_b:
+                        return ("benchmark",)
                     if event.key == pygame.K_RETURN:
                         return self._create_dimensions()
                     if event.key == pygame.K_BACKSPACE:
                         self._handle_backspace()
+
                     elif event.unicode.isdigit():
                         self._handle_digit(event.unicode)
 
@@ -223,7 +226,7 @@ class MazeMenu:
 
     def _draw_info(self):
         text = self.info_font.render(
-            "ENTER para generar. ESC para salir",
+            "ENTER para generar. B para benchmark. ESC para salir",
             True, (180, 180, 180)
         )
 

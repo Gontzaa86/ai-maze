@@ -19,6 +19,7 @@ class CyclicMazeGenerator:
             raise ValueError("El número de conexiones adicionales no puede ser negativo.")
 
         self.extra_connections = extra_connections
+        self.seed = seed
         self.random = random.Random(seed)
 
     def generate(self, rows: int, cols: int) -> Maze:

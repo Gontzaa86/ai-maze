@@ -14,6 +14,7 @@ from .registry import register_generator
 )
 class RecursiveBacktrackingGenerator:
     def __init__(self, seed: int | None = None, rng: random.Random | None = None):
+        self.seed = seed
         self.random = rng or random.Random(seed) # Generar laberintos mediante semillas. De modo que se genere el mismo siempre
 
     def generate(self, rows: int, cols: int) -> Maze:
