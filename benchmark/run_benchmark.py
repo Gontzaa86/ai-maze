@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from generators.registry import create_generator
+from solvers.registry import create_solver
+
 from .suite import BenchmarkSuite
 from .record import BenchmarkRecord
 from .summary import BenchmarkSummary, summarize
@@ -11,8 +14,8 @@ class BenchmarkRun:
     summary: BenchmarkSummary
 
 def run_benchmark(
-        generator,
-        solver,
+        generator_name: str,
+        solver_name: str,
         rows: int,
         cols: int,
         start: tuple[int, int],
@@ -21,11 +24,14 @@ def run_benchmark(
         seed: int | None = None,
         filepath: str | Path = "benchmark_results.csv",
 ) -> BenchmarkRun:
+    generator = create_generator(generator_name)
+    solver = create_solver(solver_name)
+    
     suite = BenchmarkSuite()
 
     records = suite.run_many(
-        generators=[generator],
-        solvers=[solver],
+        generators=[generator.__class__],
+        solvers=[solver.__class__],
         rows=rows,
         cols=cols,
         start=start,

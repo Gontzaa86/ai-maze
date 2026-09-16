@@ -215,8 +215,8 @@ def test_run_benchmark_creates_valid_csv(tmp_path):
     filepath = tmp_path / "benchmark.csv"
 
     benchmark_run = run_benchmark(
-        generator=CyclicMazeGenerator,
-        solver=BFSSolver,
+        generator_name="cyclic",
+        solver_name="bfs",
         rows=5,
         cols=5,
         start=(0, 0),
