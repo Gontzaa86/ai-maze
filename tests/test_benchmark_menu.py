@@ -50,3 +50,17 @@ def test_benchmark_menu_seed_configuration():
     assert configuration["seed"] == 12345
 
     pygame.quit()
+
+def create_menu():
+    pygame.init()
+    return BenchmarkMenu()
+
+def test_benchmark_menu_custom_run_count():
+    menu = create_menu()
+
+    menu.runs = "100"
+
+    configuration = menu._create_configuration()
+
+    assert configuration is not None
+    assert configuration["seed_count"] == 100

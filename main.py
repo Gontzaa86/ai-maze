@@ -11,6 +11,7 @@ from solvers.registry import create_solver, discover_solvers
 from visualization.pygame_view import PygameMazeView
 from visualization.menu import MazeMenu
 from visualization.benchmark_menu import BenchmarkMenu
+from visualization.benchmark_result_view import BenchmarkResultView
 
 from benchmark.run_benchmark import run_benchmark
 
@@ -83,21 +84,15 @@ def main():
                 filepath="benchmark_results.csv"
             )
 
-            summary = benchmark_run.summary
+            result_view = BenchmarkResultView(
+                benchmark_run=benchmark_run,
+                filepath="benchmark_result.csv"
+            )
 
-            print()
-            print("=== BENCHMARK COMPLETADO ===")
-            print()
+            action = result_view.run()
 
-            print(f"Laberintos:             {summary.total_runs}")
-            print(f"Exitosos:               {summary.successful_runs}")
-            print(f"Longitud media:         {summary.average_solution_length:.2f}")
-            print(f"Movimientos medios:     {summary.average_moves:.2f}")
-            print(f"Tiempo total:           {summary.total_execution_time:.6f} s")
-            
-            print()
-            print("CSV generado: benchmark_results.csv")
-            print()
+            if action == "quit":
+                running = False
 
             continue
 
