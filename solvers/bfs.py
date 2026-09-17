@@ -42,12 +42,14 @@ class BFSSolver(Solver):
 
         solution = self._build_solution(previous, start, end)
 
+        edge_marks = self._build_edge_marks(solution)
+
         events.append(self._solved_event(end))
 
         return SolveResult(
             solution = solution,
             events = events,
-            edge_marks = {}
+            edge_marks = edge_marks
         )
 
     def _get_neighbors(self, maze: Maze, position: tuple[int, int]) -> list[tuple[int, int]]:
@@ -99,6 +101,15 @@ class BFSSolver(Solver):
         path.reverse()
 
         return path
+
+    def _build_edge_marks(self, solution: list[tuple[int, int]]) -> dict[frozenset, int]:
+        edge_marks = {}
+
+        for current, neighbor in zip(solution, solution[1:]):
+            edge = frozenset((current, neighbor))
+            edge_marks[edge] = 1
+
+        return edge_marks
 
     def _start_event(self, position: tuple[int, int]):
         return SolverEvent(type = EventType.START, position = position)

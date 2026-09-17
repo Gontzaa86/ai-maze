@@ -138,13 +138,12 @@ class PygameMazeView:
         self.current_position = event.position
 
         if event.from_position is not None:
-            edge = frozenset(
-                (event.from_position, event.to_position)
-            )
+            edge = frozenset((event.from_position, event.to_position))
 
             self.edge_marks[edge] = event.mark
 
         if event.type == EventType.SOLVED:
+            self.edge_marks = self.result.edge_marks.copy()
             self.finished = True
 
     def _decrease_speed(self):
