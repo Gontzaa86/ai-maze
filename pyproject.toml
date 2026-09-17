@@ -12,7 +12,19 @@ dependencies = [
     "pygame (>=2.6.1,<3.0.0)"
 ]
 
+[tool.poetry]
+packages = [
+    { include = "dataset" },
+    { include = "generators" },
+    { include = "solvers" },
+    { include = "maze" },
+    { include = "benchmark" },
+    { include = "visualization" }
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+dataset = "dataset.run:main"
