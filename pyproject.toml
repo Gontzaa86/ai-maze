@@ -20,7 +20,8 @@ packages = [
     { include = "solvers" },
     { include = "maze" },
     { include = "benchmark" },
-    { include = "visualization" }
+    { include = "visualization" },
+    { include = "ai" }
 ]
 
 [build-system]
