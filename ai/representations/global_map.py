@@ -37,63 +37,106 @@ class GlobalMapRepresentation:
 
     def encode(self, maze: Maze, start: tuple[int, int], end: tuple[int, int], current: tuple[int, int]) -> np.ndarray:
         """
-        Convierte el estado actual del laberinto en una representación global preparada para ML.
+        Codifica directamente un objeto Maze.
         """
-        self._validate_position(maze, start, "start")
-        self._validate_position(maze, end, "end")
-        self._validate_position(maze, current, "current")
+        self._validate_position(maze.rows, maze.cols, start, "start")
+        self._validate_position(maze.rows, maze.cols, end, "end")
+        self._validate_position(maze.rows, maze.cols, current, "current")
 
-        representation = np.zeros(
-            (self.CHANNELS, maze.rows, maze.cols),
-            dtype = np.float32
+        cells = [
+            [
+                self._encode_cell(maze.get_cell(row, col))
+                for col in range(maze.cols)
+            ]
+            for row in range(maze.rows)
+        ]
+
+        return self.encode_cells(
+            cells=cells,
+            start=start,
+            end=end,
+            current=current
         )
 
-        for row in range(maze.rows):
-            for col in range(maze.cols):
-                cell = maze.get_cell(row, col)
+    def encode_cells(
+            self, 
+            cells: list[list[int]], 
+            start: tuple[int, int], 
+            end: tuple[int, int], 
+            current: tuple[int, int]
+        ) -> np.ndarray:
+        """
+        Codifica directamente una matriz compacta de celdas.
+        Cada celda debe estar codificada con el formato U/R/D/L:
+            U = 8
+            R = 4
+            D = 2
+            L = 1
+        """
 
-                representation[
-                    self.WALL_UP,
-                    row, col
-                ] = float(cell.walls["up"])
+        rows = len(cells)
 
-                representation[
-                    self.WALL_RIGHT,
-                    row, col,
-                ] = float(cell.walls["right"])
+        if rows == 0:
+            raise ValueError("La matriz del laberinto no puede estar vacía.")
 
-                representation[
-                    self.WALL_DOWN,
-                    row, col,
-                ] = float(cell.walls["down"])
+        cols = len(cells[0])
 
-                representation[
-                    self.WALL_LEFT,
-                    row, col,
-                ] = float(cell.walls["left"])
+        if cols == 0:
+            raise ValueError("La matriz del laberinto no puede estar vacía.")
+
+        if any(len(row) != cols for row in cells):
+            raise ValueError("Todas las filas del laberinto deben tener el mismo tamaño.")
+
+        for row in cells:
+            for value in row:
+                if not isinstance(value, int) or not 0 <= value <= 15:
+                    raise ValueError("Cada celda debe ser un entero entre 0 y 15.")
+
+        self._validate_position(rows, cols, start, "start")
+        self._validate_position(rows, cols, end, "end")
+        self._validate_position(rows, cols, current, "current")
+
+        representation = np.zeros((self.CHANNELS, rows, cols), dtype=np.float32)
+
+        for row in range(rows):
+            for col in range(cols):
+                value = cells[row][col]
+
+                representation[self.WALL_UP, row, col] = float(bool(value & 8))
+                representation[self.WALL_RIGHT, row, col] = float(bool(value & 4))
+                representation[self.WALL_DOWN, row, col] = float(bool(value & 2))
+                representation[self.WALL_LEFT, row, col] = float(bool(value & 1))
 
         start_row, start_col = start
-        representation[
-            self.START,
-            start_row, start_col
-        ] = 1.0
+        representation[self.START, start_row, start_col] = 1.0
 
         end_row, end_col = end
-        representation[
-            self.GOAL,
-            end_row, end_col
-        ] = 1.0
+        representation[self.GOAL, end_row, end_col] = 1.0
 
         current_row, current_col = current
-        representation[
-            self.CURRENT,
-            current_row, current_col
-        ] = 1.0
+        representation[self.CURRENT, current_row, current_col] = 1.0
 
         return representation
 
-    def _validate_position(self, maze: Maze, position: tuple[int, int], name: str) -> None:
+    def _encode_cell(self, cell) -> int:
+        value = 0
+
+        if cell.walls["up"]:
+            value |= 8
+
+        if cell.walls["right"]:
+            value |= 4
+
+        if cell.walls["down"]:
+            value |= 2
+
+        if cell.walls["left"]:
+            value |= 1
+
+        return value
+
+    def _validate_position(self, rows: int, cols: int, position: tuple[int, int], name: str) -> None:
         row, col = position
 
-        if not maze.is_inside(row, col):
+        if not (0 <= row < rows and 0 <= col < cols):
             raise ValueError(f"La posición '{name}' está fiera del laberinto: {position}")
